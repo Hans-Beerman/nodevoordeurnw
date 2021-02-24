@@ -69,8 +69,9 @@ Add Passwd.h to the NodeOven/src directoy containing the following information
 #define CLEAR_EEPROM_AND_CACHE_BUTTON_PRESSED   (LOW)
 #define MAX_WAIT_TIME_BUTTON_PRESSED            (4000)  // in ms
 
-#define DOOR_OPEN_TIME                          (2) // in s
-#define CHECK_NFC_READER_AVAILABLE_TIME_WINDOW  (1000) // in ms         
+#define DOOR_OPEN_TIME                          (15) // in s
+#define CHECK_NFC_READER_AVAILABLE_TIME_WINDOW  (10000) // in ms  
+#define GPIOPORT_I2C_RECOVER_RELAY              (15)       
 
 
 #ifdef WIFI_NETWORK
@@ -214,11 +215,14 @@ void checkNFCReaderAvailable() {
       digitalWrite(RFID_CLK_PIN, 0);
       pinMode(RFID_SDA_PIN, OUTPUT);
       digitalWrite(RFID_SDA_PIN, 0);
-      Relay1On();
-      delay(200);
-      Relay1Off();
+      digitalWrite(GPIOPORT_I2C_RECOVER_RELAY, 1);
+      
+//      Relay1On();
+//      delay(1000);
+//      Relay1Off();
+      delay(500);
+      digitalWrite(GPIOPORT_I2C_RECOVER_RELAY, 0);
       reader.begin();
-
     }
   }
 }
@@ -227,6 +231,10 @@ void setup() {
   Serial.begin(115200);
   Serial.println("\n\n\n");
   Serial.println("Booted: " __FILE__ " " __DATE__ " " __TIME__ );
+
+  // for recovery relay I2C
+  pinMode(GPIOPORT_I2C_RECOVER_RELAY, OUTPUT);
+  digitalWrite(GPIOPORT_I2C_RECOVER_RELAY, 0);
 
   setup_MCP23017();
 
@@ -346,6 +354,7 @@ void loop() {
     now = millis();
     if ((now - lastCheckNFCReaderTime) > CHECK_NFC_READER_AVAILABLE_TIME_WINDOW) {
       lastCheckNFCReaderTime = now;
+      Serial.print("Check Reader Available\n\r");
       checkNFCReaderAvailable();
     }
   }

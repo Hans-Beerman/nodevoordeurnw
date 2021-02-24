@@ -7,6 +7,7 @@ Adafruit_MCP23017 mcp;
 #define FET1_OUTPUT     11
 #define FET2_OUTPUT     12
 #define RELAY1_OUTPUT   8
+#define RELAY2_OUTPUT   9
 
 void setup_MCP23017() {
     Wire.begin(RFID_SDA_PIN, RFID_SCL_PIN, RFID_I2C_FREQ);
@@ -15,6 +16,14 @@ void setup_MCP23017() {
     mcp.digitalWrite(FET2_OUTPUT, 0);
     mcp.pinMode(RELAY1_OUTPUT, OUTPUT);
     mcp.digitalWrite(RELAY1_OUTPUT, 0);
+
+/* for test relay    
+    delay(1000);
+    mcp.digitalWrite(RELAY1_OUTPUT, 1);
+    delay(1000);
+    mcp.digitalWrite(RELAY1_OUTPUT, 0);
+*/    
+
 }
 
 void openDoor() {
