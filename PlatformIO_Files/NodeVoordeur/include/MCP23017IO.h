@@ -8,3 +8,7 @@ void setup_MCP23017();
 void openDoor();
 
 void closeDoor();
+
+void Relay1On();
+
+void Relay1Off(); 

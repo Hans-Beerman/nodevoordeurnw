@@ -65,11 +65,13 @@ Add Passwd.h to the NodeOven/src directoy containing the following information
 // Press BUT1 on Olimex ESP32 PoE module before (re)boot of node
 // keep BUT1 pressed for at least 5 s
 // After the release of BUT1 node will restart with empty EEProm and empty cache
-#define CLEAR_EEPROM_AND_CACHE_BUTTON         (34)
-#define CLEAR_EEPROM_AND_CACHE_BUTTON_PRESSED (LOW)
-#define MAX_WAIT_TIME_BUTTON_PRESSED          (4000)  // in ms
+#define CLEAR_EEPROM_AND_CACHE_BUTTON           (34)
+#define CLEAR_EEPROM_AND_CACHE_BUTTON_PRESSED   (LOW)
+#define MAX_WAIT_TIME_BUTTON_PRESSED            (4000)  // in ms
 
-#define DOOR_OPEN_TIME                        (15) // in s
+#define DOOR_OPEN_TIME                          (2) // in s
+#define CHECK_NFC_READER_AVAILABLE_TIME_WINDOW  (1000) // in ms         
+
 
 #ifdef WIFI_NETWORK
 ACNode node = ACNode(MACHINE, WIFI_NETWORK, WIFI_PASSWD);
@@ -88,6 +90,7 @@ TelnetSerialStream telnetSerialStream = TelnetSerialStream();
 #ifdef OTA_PASSWD
 OTA ota = OTA(OTA_PASSWD);
 #endif
+
 
 // LED aartLed = LED(SYSTEM_LED);    // defaults to the aartLed - otherwise specify a GPIO.
 
@@ -144,6 +147,11 @@ char reportStr[128];
 unsigned long approvedCards = 0;
 unsigned long rejectedCards = 0;
 
+// For storing the local IP address of the node
+IPAddress theLocalIPAddress;
+
+unsigned long lastCheckNFCReaderTime = 0;
+
 void checkClearEEPromAndCacheButtonPressed(void) {
   unsigned long ButtonPressedTime;
   unsigned long currentSecs;
@@ -197,6 +205,23 @@ void checkClearEEPromAndCacheButtonPressed(void) {
   }
 }
 
+
+void checkNFCReaderAvailable() {
+  if (USE_NFC_RFID_CARD) {
+    if (!reader.CheckPN53xBoardAvailable()) {
+      // Error in communuication with RFID reader, try resetting communication
+      pinMode(RFID_CLK_PIN, OUTPUT);
+      digitalWrite(RFID_CLK_PIN, 0);
+      pinMode(RFID_SDA_PIN, OUTPUT);
+      digitalWrite(RFID_SDA_PIN, 0);
+      Relay1On();
+      delay(200);
+      Relay1Off();
+      reader.begin();
+
+    }
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -257,12 +282,16 @@ void setup() {
     report["approved cards"] = reportStr;
     snprintf(reportStr, sizeof(reportStr), "%lu", rejectedCards);
     report["rejected cards"] = reportStr;
+
+    theLocalIPAddress = node.localIP();
+    report["IP_address"] = theLocalIPAddress.toString();
   });
 
   reader.onSwipe([](const char * tag) -> ACBase::cmd_result_t {
     // avoid swithing messing with the swipe process
     if (machinestate > CHECKINGCARD) {
       Debug.printf("Ignoring a normal swipe - as we're still in some open process.");
+      checkNFCReaderAvailable();
       return ACBase::CMD_CLAIMED;
     }
 
@@ -270,6 +299,7 @@ void setup() {
     // an approval request, keep state, and so on.
     //
     Debug.printf("Detected a normal swipe.\n");
+    checkNFCReaderAvailable();
     machinestate = CHECKINGCARD;
   //  buzz = CHECK;
     return ACBase::CMD_DECLINE;
@@ -307,8 +337,18 @@ void setup() {
   Log.println("Booted: " __FILE__ " " __DATE__ " " __TIME__ );
 }
 
+unsigned long now;
+
 void loop() {
   node.loop();
+
+  if (USE_NFC_RFID_CARD) {
+    now = millis();
+    if ((now - lastCheckNFCReaderTime) > CHECK_NFC_READER_AVAILABLE_TIME_WINDOW) {
+      lastCheckNFCReaderTime = now;
+      checkNFCReaderAvailable();
+    }
+  }
 
   if (laststate != machinestate) {
     Debug.printf("Changed from state <%s> to state <%s>\n",
@@ -365,6 +405,7 @@ void loop() {
     case LOCKOPEN:
       break;
     case LOCKCLOSED:
+        checkNFCReaderAvailable();
         closeDoor();
         machinestate = WAITINGFORCARD;
       break;

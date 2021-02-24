@@ -47,6 +47,10 @@
 #define RFID_SCL_PIN    (16)
 #endif
 
+#ifndef RFID_I2C_FREQ
+#define RFID_I2C_FREQ   (100000U)
+#endif
+
 class RFID : public ACBase {
   public:
     const char * name() { return "RFID"; }
@@ -59,6 +63,9 @@ class RFID : public ACBase {
     RFID(bool useCache = true, bool useNFCRFIDCard = true);
 
     void begin();
+
+    bool CheckPN53xBoardAvailable();
+
     void loop();
 
     void report(JsonObject& report);

@@ -53,7 +53,7 @@ RFID::RFID(bool useCache, bool useNFCRFIDCard) {
    useTagsStoredInCache = useCache;
 
    if (nfcCardUsed) {
-      Wire.begin(RFID_SDA_PIN, RFID_SCL_PIN);
+      Wire.begin(RFID_SDA_PIN, RFID_SCL_PIN, RFID_I2C_FREQ);
       _i2cNFCDevice = new PN532_I2C(Wire);
       _nfc532 = new PN532(*_i2cNFCDevice);
       return;
@@ -72,6 +72,23 @@ RFID::RFID(bool useCache, bool useNFCRFIDCard) {
    if (_debug) {
       _mfrc522->PCD_DumpVersionToSerial();
    }
+}
+
+bool RFID::CheckPN53xBoardAvailable()
+{
+   uint32_t versiondata = _nfc532->getFirmwareVersion();
+   if (! versiondata) {
+      if (foundPN53xBoard) {
+         Serial.println("RFId: Didn't find PN53x board");
+         foundPN53xBoard = false;
+      }
+   } else {
+      if (!foundPN53xBoard) {
+         Serial.println("RFId: Found PN53x board");
+         foundPN53xBoard = true;
+      }
+   }
+   return foundPN53xBoard;
 }
 
 void RFID::begin() {
@@ -126,7 +143,8 @@ void RFID::loop() {
                   snprintf(buff, sizeof(buff), "%s%d", i ? "-" : "", uid[i]);
                   strncat(tag, buff, sizeof(tag));
                };
-               Log.printf("Tag ID = %s\n", tag);
+               // Log.printf("Tag ID = %s\n", tag);
+               Serial.printf("Tag ID = %s\n\r", tag);
 
                // Limit the rate of reporting. Unless it is a new tag.
                //
@@ -183,7 +201,8 @@ void RFID::loop() {
             snprintf(buff, sizeof(buff), "%s%d", i ? "-" : "", _mfrc522->uid.uidByte[i]);
             strncat(tag, buff, sizeof(tag));
          };
-         Log.printf("Tag ID = %s\n", tag);
+         // Log.printf("Tag ID = %s\n", tag);
+         Serial.printf("Tag ID = %s\n\r", tag);
 
          // Limit the rate of reporting. Unless it is a new tag.
          //
