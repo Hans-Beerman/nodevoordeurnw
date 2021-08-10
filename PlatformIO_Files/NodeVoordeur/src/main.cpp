@@ -69,7 +69,7 @@ Add Passwd.h to the NodeOven/src directoy containing the following information
 #define CLEAR_EEPROM_AND_CACHE_BUTTON_PRESSED   (LOW)
 #define MAX_WAIT_TIME_BUTTON_PRESSED            (4000)  // in ms
 
-#define DOOR_OPEN_TIME                          (15) // in s
+#define DOOR_OPEN_TIME                          (5) // in s
 #define CHECK_NFC_READER_AVAILABLE_TIME_WINDOW  (10000) // in ms  
 #define GPIOPORT_I2C_RECOVER_RELAY              (15)       
 
