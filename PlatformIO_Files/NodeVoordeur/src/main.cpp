@@ -215,12 +215,13 @@ void checkNFCReaderAvailable() {
       digitalWrite(RFID_CLK_PIN, 0);
       pinMode(RFID_SDA_PIN, OUTPUT);
       digitalWrite(RFID_SDA_PIN, 0);
+
+      pinMode(GPIOPORT_I2C_RECOVER_RELAY, OUTPUT);
       digitalWrite(GPIOPORT_I2C_RECOVER_RELAY, 1);
-      
-//      Relay1On();
-//      delay(1000);
-//      Relay1Off();
+
       delay(500);
+
+      pinMode(GPIOPORT_I2C_RECOVER_RELAY, OUTPUT);
       digitalWrite(GPIOPORT_I2C_RECOVER_RELAY, 0);
       reader.begin();
     }

@@ -468,6 +468,19 @@ void ACNode::loop() {
 
     cacheToSPIFFSLoop(beatCounter);
  
+ /* for test
+    static bool firstTime = true;
+    if (firstTime) {
+        if (isConnected()) {
+            firstTime = false;
+            Serial.println("********************** IS CONNECTED *************************");
+        } else {
+            firstTime = false;
+            Serial.println("********************** IS NOT CONNECTED!!!  *************************");
+        }
+    }
+*/
+    
     if(isConnected())
         mqttLoop();
     

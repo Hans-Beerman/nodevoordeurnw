@@ -2,6 +2,10 @@
 
 NodeVoordeur is a node, used at the MakerSpace Leiden, to control the front door of the Makerspace. This repository has the following subdirs:
 
+- **3D designs:**
+
+The drawings of 3D parts, which are used on the PCB
+
 - **Drawings:**
 
 Schematic of the wiring between the different modules used

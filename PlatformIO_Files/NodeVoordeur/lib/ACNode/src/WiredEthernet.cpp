@@ -45,8 +45,19 @@ void WiFiEvent(WiFiEvent_t event)
       Log.println("ETH Stopped");
       _connected = false;
       break;
+    case SYSTEM_EVENT_AP_STADISCONNECTED:
+      break;
+    case SYSTEM_EVENT_AP_PROBEREQRECVED:
+      break;
+    case SYSTEM_EVENT_ACTION_TX_STATUS:
+      _connected = false;
+      break;
+    case SYSTEM_EVENT_ROC_DONE:
+      _connected = true;
+      break;
     default:
       Log.printf("ETH unknown event %d (ignored)\n", event);
+      _connected = false;
       break;
   }
 }
